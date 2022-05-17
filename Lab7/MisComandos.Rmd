@@ -1,0 +1,183 @@
+---
+title: 'IMM con R. Lab7: GLM Multivariados (MANOVA un factor con 2 niveles)'
+author: "Dra. Maite Mascaro y Dr. Edlin Guerra Castro"
+date: "`r format(Sys.time(), '%d/%m/%Y')`"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("ggplot2")
+library("vegan")
+library("ape")
+library("MASS")
+library("dplyr")
+
+```
+
+# Caso Morfometría de embriones del pulpo *Octupus maya*
+
+## Parte I: Aplicación de un MANOVA con funciones "enlatadas"
+
+Un grupo de investigadores desea explorar los cambios en 4 variables morfométricas de los embriones del pulpo rojo *Octopus maya*, cuando los embriones son expuestos a un incremento gradual de la temperatura y compararlos con una condición control en la que los embriones se mantienen a una temperatura constante de 26°C. Las variables morfométricas registradas en los embriones de ambos tratamientos fueron longitud total, longitud del manto, longitud del brazo y diámetro del ojo (todas en mm). Esperaban encontrar diferencias en la forma de los embriones del tratamiento control y expuestos. Los datos se encuentran en el archivo `morfOmay.xlsx`. 
+
+1. Identifica las variables que forman parte de la respuesta, y las que son explicativas. ¿Cuál sería el modelo de ANOVA idóneo para poner a prueba la hipótesis de los investigadores (i.e. ANOVA de una vía, anidado, factorial, etc.)? Formula la hipótesis del modelo e identifica el componente de variación que debería resultar significativo si ésta llegara a ser corroborada. (PISTA: considera el problema una extensión natural de una prueba univariada con una sola respuesta). 
+
+```{r}
+library(readxl)
+dat <- read_excel("C:/Users/edlin/OneDrive/Documents/UNAM/PCMyL/IMMenR/2021/IMM_R/Lab7/morfOmay.xlsx")
+
+#Las variables morfometricas son las variables de respuesta. El tratamiento es la explicativa: es un factor
+#categórico con 2 niveles.
+#MODELO: Y(morfometría)~X(trat)
+#Hm: Existen diferencias en la morfometría de los pulpos control y expuestos; esto implica que el término relacionado con el tratamiento térmicco debería ser significativo si se llegara a corroborar la Hmodelo.
+
+
+
+str(dat)
+names(dat)
+summary(dat)
+```
+
+
+
+2. Genera una matriz Y con los descriptores que constituyen la respuesta. Asegúrate que es una matriz con la función `as.matrix`, y explorala para responder a las siguientes preguntas. (PISTA: recuerda la función `pairs`, `boxplot`).
+
+```{r}
+Y <- dat[,c(1:4)]
+Y <- as.matrix(Y)
+```
+
+a) ¿Cuántas observaciones (nn) y descriptores (pp) tiene la matriz Y? 
+```{r}
+dim(Y)
+```
+
+
+b) ¿Existen correlaciones entre las variables morfométricas? ¿Son lineales? 
+```{r}
+pairs(Y)
+# Si, entre las 4 variables hay correlaciones y éstas son lineales.
+
+```
+
+c) ¿Cómo son las escalas de magnitud en las varaibles de respuesta? 
+```{r}
+boxplot(Y)
+#Son distintas
+```
+
+
+d) Si son muy diferentes entre si, estandariza la matriz Y mediante la función `decostand` de la librería `vegan`. Repite la exploración para asegurar que la estadarización surtió efecto.
+```{r}
+library(vegan)
+Y.std<-decostand(Y, "standardize")
+pairs(Y.std)
+boxplot(Y.std)
+```
+
+
+e) ¿Cuántas observaciones y niveles tiene la variable explicativa? ¿Es una varaible categórica o continua? Si es categórica, asegúrate de convertirla a factor antes de comenzar.
+```{r}
+str(dat$trat)
+length(dat$trat)
+is.factor(dat$trat)
+dat$trat <- factor(dat$trat)
+```
+
+3. Para explorar la posibilidad de que se corrobore la hipótesis, aplica un PCA de covarianza a la matriz Y.std, y elabora un gráfico con los primeros dos componentes. 
+```{r}
+proy<-prcomp(Y.std, retx=T, center=T, scale.=F)$x 
+plot(proy[,2]~proy[,1],asp=1,cex=1, xlab = "PC1", ylab = "PC2")
+points(proy[dat$trat=="cont",], cex=1.2,pch=21, bg='blue') 
+points(proy[dat$trat=="ramp",], cex=1.2,pch=21, bg='red')  
+```
+
+a) La función `aggregate` permite aplicar ciertos algoritmos sencillos a juegos de datos de acuerdo a un codificador. Copia el siguiente código para calcular las medias de cada descriptor por cada nivel del factor `tratamiento`
+```{r}
+aggregate(Y.std,by=list(dat$trat), mean)
+```
+b) Con lo observado hasta ahora ¿Crees que la hipótesis de los investigadores se cumple?
+
+R: Daría la impresión de que si hay cierta separación/ordenación entre control y rampa, sobre todo en las muestras del lado derecho de la ordenación.
+
+4. Aplica un ajuste lm a la matriz Y.std en función de tratamiento, y guárdalo como mod1. Aplica la función `summary` para ver la salida.
+
+a) ¿Qué es lo que resulta? ¿Cuántos coeficientes estima en total?
+
+```{r}
+mod1<-lm(Y.std~dat$trat)
+summary(mod1)
+
+
+#Devuelve una tabla de los estimados por cada descriptor or variable de la respuesta en Y. Cada tabla está compuesta de una entrada para el estimado del intercepto y una para el factor X en el modelo. En total estima 8 coeficientes, 2 (intercepto/factor X) por cada descriptor.
+```
+
+b) Ahora aplica la función `manova` a la matriz de datos multivariados (Y.std) en función de trat, y pide un resumen. ¿Qué es lo que resulta cuando pides el resumen? ¿Puedes identificar los distintos elementos de la salida?
+
+```{r}
+mod2<-manova(Y.std~dat$trat)
+summary(mod2)
+```
+
+
+
+c) ¿Cómo interpretarías este resultado en términos estadístico? ¿Cómo lo interpretarías en los términos de la hipótesis del problema?
+
+R: El factor tratamiento (efecto de cont/ramp) explica una parte significativa de la variación total en el experimento. El conjunto de las varaibles morfométricas difieren significativamente entre embriones de los distintos tratamientos.
+
+
+d) Cambia los argumentos de la función `summary` como se indica a continuación. Explica los cambios en la nueva salida. 
+
+```{r}
+summary(mod2,test="Wilks")
+```
+
+5. Para explorar algunos de los resultados de mod2 sigue las instrucciones a continuación. Con tu conocimiento sobre los Modelos Generales Lineales responde a las preguntas en cada inciso.
+
+a) Aplica la función `coef` sobre mod2. ¿Cuántos valores son y qué representan? ¿Con qué elementos de la salida de un modelo univariado se corresponden?
+
+```{r}
+coef(mod2)
+aggregate(Y.std,by=list(dat$trat), mean)
+```
+
+b) Obtén las matrices SSCP de la X y de los residuales copiando el siguiente código. ¿Qué son los elementos de la diagonal en cada caso? 
+
+```{r}
+summary(mod2)$SS
+```
+
+
+c) Llama a mod2 y examina lo que se obtiene. ¿Reconoces algún valor de esta tabla? ¿Qué representa la suma de todos los valores de la tabla (excluyendo los g.l.)?
+
+d) Llama `mod2$residuals` e identifica los elementos de esta matriz. ¿Cómo deberían de proyectarse estos valores en una ordenación por PCA? Verifica tu respuesta usando el código de la librería `pca3d`.
+e) Llama mod2$fitted e identifca los elementos de esta matriz. ¿Cómo deberían proyectarse estos valores en una ordenación por PCA? Verifica tu respuesta.
+f) Llama mod2$model e identifica los elementos de esta matriz. ¿En qué difiere la matriz "model" de la "fitted"?
+
+## Parte II: Aplicación del MANOVA desde el algebra matricial
+
+1. El siguiente código aplica un MANOVA a mano, es decir, siguiendo las fórmulas de álgebra matricial que vimos en clase. Sigue las instrucciones para ir haciendo la correspondencia entre la salida de la función `manova` y las distintas matrices de los resultados del análisis de GLM.
+
+2. El siguiente código es para obtener otras visualización del mod2 usando PCA.
+
+a) Sobre los objetos obtenidos con el código a mano; sin vectores; sin texto.
+b) El biplot enlatado; tiene el problema de no aceptar colores distintos para cada punto. 
+c) El biplot "fancy" de la librería `pca3d`;
+d) Un biplot hecho a mano, donde puedes cambiar cualquier rasgo.
+
+3. ¿Puedes detectar las diferencias estadísticas (significancia de la prueba de MANOVA) entre los embriones el tratamiento control y rampa en las distintas representaciones gráficas? Usando toda la información obtenida (eigenvalores, eigenvectores, MANOVA, residuales, etc.) ¿cómo respondes a la pregunta de los investigadores?    
+
+## Parte III: Modelo de dos factores en MANOVA
+
+Imagina que los investigadores tenían la hipótesis de que las diferencias en la morfometría de los embriones control y expuestos se incrementaran a lo largo del tiempo, justamente como parte del efecto de la temperatura. Con los mismos datos ajusta un GLM multivariado considerando un arreglo factorial con tratamiento (2 niveles) y días (7 niveles). Recuerda que en la estructura fija del modelo, el "full factorial" puede escribirse A*B, o bien, A+B+A:B. Antes de ajustar el modelo asegúrate de que todas las variables explicativas sean factores.
+
+1. ¿Se corrobora la hipótesis de los investigadores? Explica tu respuesta.
+
+2. Obtén los residuales del modelo nuevo, y su proyección en una ordenación por PCA usando la librería `pca3d`. ¿Desapareció el patrón observado anteriormente? ¿Cuáles serían los mejores estimadores de la variación residual para cada descriptor o variable morfométrica medida?
+
+3. Obtén los valores gorro o ajustados, y copia el siguiente código para obtener su proyección en una ordenación por PCA usando la libreria `pca3d`.
+

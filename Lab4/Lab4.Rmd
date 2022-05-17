@@ -1,0 +1,258 @@
+---
+title: 'IMM con R. Lab4: Análisis de Clasificación'
+author: "Dra. Maite Mascaro y Dr. Edlin Guerra Castro"
+date: "`r format(Sys.time(), '%d/%m/%Y')`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(vegan)
+
+```
+
+Caso real: Contaminación en bentos por plataformas petroleras. 
+
+El siguiente caso de estudio fue publicado por Gray JS, Clarke KR, Warwick RM, Hobbs G (1990). Detection of initial effects of pollution on marine benthos: an example from the Ekofisk and Eldfisk oilfields, North Sea. Marine Ecology Progress Series 66, 285-299. Este estudio consiste en la evaluación del macrobentos y varios contaminantes del sedimento en 39 sitios dispuestos en un diseño radial alrededor de una plataforma de perforación petrolera en el mar del Norte, donde se espera que los contaminantes asociados a la actividad petrolera afecten la estructura del ecosistema. La disposición de los sitios es circular, alejándose cada ciertos kilómetros del centro de  perforación. Para esta actividad ignoraremos la distancia de cada sitio respecto a la plataforma. Intentaremos clasificar las muestras según sus descriptores, es decir,  dejaremos que los datos cuenten su propia historia en vez de forzarlos a un modelo específico.
+
+##1. Análisis de clasificación o Cluster analysis. Evaluación de los métodos de agrupación
+
+a) Importe la matriz de datos "sedimentos"
+```{r, include=FALSE}
+sedimentos <- read.csv("sedimentos.csv",header=T, sep=",", row.names=1)
+
+```
+
+b) ¿Cuáles son las dimensiones del objeto?
+```{r, include=FALSE}
+dim(sedimentos)
+```
+
+c) ¿Cuáles son las variables que allí aparecen y cuáles deberían incluirse en el análisis?
+
+d) Seleccione sólo las variables que ambientalmente describan la muestra de sedimento, incluyendo contaminantes. Llame a esa selección "sed".
+```{r, include=FALSE}
+sed<-sedimentos[,2:10]
+```
+
+e) Evalue las escalas de magnitud de las variables, así como sus promedios. ¿Qué función de R podría ser útil para esto?
+```{r, include=FALSE}
+summary(sed)
+```
+
+f) Considerarndo la escala de magnitud de las variables, qué tipo de pretratamiento debe ser aplicado?
+```{r, include=FALSE}
+pairs(sed)
+sed1<-data.frame("log.THC"=log(sed["THC"]), "log.Cu" = log(sed["Cu"]),sed[2:6],sed[8:9])
+pairs(sed1)
+```
+
+g) Aplique el pretratamiento y llame a la matriz resultante "sed.stand"
+```{r, include=FALSE}
+sed.stand<-decostand(sed1, "standardize")
+```
+
+h) Aplique distancias Euclideanas a la matriz pretratada y llame a ese objeto "DE.sed"
+```{r, include=FALSE}
+DE.sed<-vegdist(sed.stand,"euc")
+```
+
+i) Genere un dendograma jerárquico con el método de agrupamiento simple ("single linkage"). Para esto será necesario aplicar la función `hclust`. Le sugerimoms leer la documentación en R sobre hclust del paquete "Stats". Por ahora le adelantamos que los argumentos necesario son la matriz de distancias y el método de vinculación, que en este caso será el simple. Llame al cluster "single.c" y grafíquelo. ¿Cuántos clusters (grupos) identifica. ¿Es capáz de reconocer algún patrón lógico? ¿Cuáles son los sitios que más se parecen?¿es este gráfico evidencia de contaminación alrededor de la plataforma petrolera?
+```{r, include=FALSE}
+single.c<-hclust(DE.sed, method = "single")
+plot(single.c, main="Single linkage")
+```
+
+j) Genere un nuevo dendograma jerárquico, pero ahora con el método completo ("complete linkage"). Llame al cluster "comp.c" y grafíquelo. Responda: ¿cuántos grupos identifica? ¿hay algún patrón más lógico? ¿cambió la clasificación respecto al método anterior?
+```{r, include=FALSE}
+comp.c<-hclust(DE.sed, method = "complete")
+plot(comp.c, main="Complete linkage")
+```
+
+
+k) Genere un tercer dendograma pero ahora con el método promedio ("average linkage"). Llame al cluster "ave.c" y grafíquelo. Responda: ¿cuántos grupos identifica? ¿hay algún patrón más lógico? ¿cambió la clasificación respecto a los dos métodos anteriores? Para tener una mejor perspectiva, puede proyectar los tres dendogramas usando la función `par` con una fila y tres columnas, y llamando nuevamente a los tres dendogramas. Es recomendable asignar un título a cada plot para poder hacer comparaciones efectivas.
+```{r, include=FALSE}
+ave.c<-hclust(DE.sed, method = "average")
+plot(ave.c, main="average linkage")
+
+```
+
+l) Modifique la posición de las etiquetas agregando como atributo en cada plot "hang = -0.1". ¿Prefiere esta salida o la anterior?
+```{r, eval=FALSE}
+par(mfrow=c(1,3),mar=c(2,4,4,2))
+plot(ave.c, main="average linkage", hang = -0.1)
+plot(comp.c, main="Complete linkage", hang = -0.1)
+plot(single.c, main="Single linkage", hang = -0.1)
+
+```
+
+m) Hasta ahora, la identifiación de grupos es compeltamente arbitraria. Usaremos un método computacionalmente intensivo para "podar" el dendograma. Esta función es la `simprof` del paquete {clustsig}. Copie en su cónsola ??simprof para obtener ayuda de cómo ejecutar simprof. Asigne un nombre al resultado simprof e dentifique cuántos grupos realmente distinguibles hay explorando ese objeto. 
+
+```{r, eval=FALSE}
+sig.clust <-
+  simprof(
+    sed.stand,
+    num.expected = 500,
+    num.simulated = 99,
+    method.cluster = "average",
+    method.distance = "euclidean",
+    method.transform = "identity",
+    alpha = 0.05,
+    sample.orientation = "row",
+    const = 0,
+    silent = TRUE,
+    increment = 100
+  )
+
+Grafique su resultado con la función simprof.plot
+par(mfrow = c(1, 1))
+sig.clust.dend <- simprof.plot(sig.clust, leaflab = "perpendicular")
+```
+
+##2. Métodos de interpretación: Heat Maps para avariables biológicas
+
+a) Importe la matriz de datos "macrofauna.cvs" y renómbrela "matriz.macrofauna"
+```{r, include=FALSE}
+matriz.macrofauna <- read.csv("macrofauna.csv",header=T, sep=",", row.names=1)
+```
+
+b) Evalue el contenido de la matriz: unidades, escalas y dimensiones.
+```{r, include=FALSE}
+matriz.macrofauna
+dim(matriz.macrofauna)
+
+```
+
+c) Genere una nueva matriz pero filtrando las primeras dos columnas. Llámelas "macrofauna"
+```{r, include=FALSE}
+macrofauna <- matriz.macrofauna[, 2:174]
+```
+
+d) Calcule descriptores univariados por cada sitio, use la riqueza de especies, la abundancia de individuos y el índice de diversidad de Simpson. Para ello genere un data.frame con las columnas como las variables, y filas como los sitios. Llame a la tabla generada "uni". Trate de identificar patrones de variación en esto sestimadores según el sitio
+```{r, include=FALSE}
+uni <- data.frame(
+    "S" = specnumber(macrofauna),
+    "N" = apply(macrofauna, 1, sum),
+    "Simpson" = diversity(macrofauna, "simpson")
+  )
+uni
+```
+
+e) Para usar una aproximación multivariada, aplique el índice de similitud Bray-Curtis luego de transformar las abundancias a raíz cuadrada. Llame a la matriz de abundancias transformadas "r.c" y a la matriz Bray-Curtis resultante "bray1". Trate de identifcar un patrón de asociación entre las muestras viendo a "bray1".
+```{r, include=FALSE}
+r.c <- sqrt(macrofauna)
+bray1 <- vegdist(r.c, method = "bray")
+length(bray1)
+```
+
+f) Genere un dendograma jerárquico con el método de agrupamiento "average linkage" o  UPGMA. Para esto será necesario aplicar la función `hclust`. Llame al cluster "cluster.bray" y conviértalo en dendograma con nuevo nombre "dend.macro". ¿Encuentra familar esa representacion? compárela con el dendograma ave.c de las variables ambientales en un solo plot. Identifique un patrón respecto a grupos y muestras que lo conforman. ¿Hay correspondencia en ambos análisis? 
+```{r, include=FALSE}
+cluster.bray <- hclust(bray1, method = "average")
+dend.macro <- as.dendrogram(cluster.bray)
+plot(dend.macro, main = "Macrofauna, Bray-Curtis 2rt")
+par(mfrow = c(1, 2))
+plot(dend.macro, main = "Macrofauna, Bray-Curtis 2rt")
+plot(ave.c, main = "Sedimentos, Dist. Euclideanas")
+```
+
+g) Identifique la relación entre las matrices con la función Mantel. Esto nos dará una idea de cuán similares son las relaciones espaciales según sus descriptores. En teoría, si los contaminantes afectan el macrobentos, debe haber correlación entre las matrices. Ejecute la prueba Mantel usando el coeficiente de correlación Spearman y construya una hipótesis nula con 9999 permutaciones.
+mantel(bray1, DE.sed, method="spearman", permutations=9999)
+
+h) ¿Cuán importante cree usted que es la similitud entre ambas matrices? Sirve esta aproximación para asociar matrices de igual dimensión?
+
+i) Ahora apliquemos la prueba estadística "simprof" para podar el dendograma del macrobentos usando un método cuantitativo. ¿Cuántos grupos estadístcamente significativos identifica el análisis jerárquico usando el método promedio?
+
+```{r, eval=FALSE}
+library(clustsig)
+sig.clust.macro <-
+  simprof(
+    r.c,
+    num.expected = 1000,
+    num.simulated = 999,
+    method.cluster = "average",
+    method.distance = "braycurtis",
+    method.transform = "identity",
+    alpha = 0.05,
+    sample.orientation = "row",
+    const = 0,
+    silent = TRUE,
+    increment = 100
+  )
+
+sig.clust.dend.m <- simprof.plot(sig.clust.macro, leaflab = "perpendicular")
+```
+
+
+
+j) Utilicemos ahora la función "heatmap" para apreciar la contribución de las especies a la estructuración de los grupos. Primero, como práctica, generemos un factor, con base en el grupo "distancia" en la matriz.macrofana.
+```{r, include=FALSE}
+distancia <- as.factor(matriz.macrofauna[, 2])
+```
+
+
+
+k) Identifique cuáles son los niveles del factor distancia generado llamando a ese objeto distancia.
+```{r, include=FALSE}
+levels(distancia)
+```
+
+m) Lea en el menú de ayuda sobre la función "heatmap". Esta función requiere definir varios argumentos, los más importantes son: la matríz con los valores de abundancia de especies y el dendograma final. Básicamente, la función reordena las filas en la matriz de abundancias, y asigna un color a las abundancias, que aumenta según la intensidad. Las columnas las asocia con base en un dendograma basado en correlacioens entre las especies. Luego genera un gráfico que facilita interpretar las especies que generan los grupos. Lo primero que debe hacer es convertir el dataframe "r.c" a una matriz de nombre "r.c.m"
+```{r, include=FALSE}
+r.c.m <- as.matrix(r.c)
+```
+
+Luego debe llamar a la función "heatmap", incluyendo la matrix r.c.m y al dendograma "dend.macro" 
+
+n) ¿Puede interpretar algo del HeatMap generado?
+
+l) Mejoresmos el heatmap incluyendo solo a las 10 especies que mejor contribuyen a diferenciar los grupos en las distancias 1 y 4. Para esto usaremos la herramienta SIMPER desarrollada por Clarke (1993), original del software PRIMER, pero incluída en la librearía Vegan. Esta rutina descompone las similitudes entres cada par de sitios y relativiza el peso de cada especie en contribuir a la disimilitud promedio entre dos grupos. Para más información:
+```{r, include=FALSE}
+??simper
+```
+
+Apliquemos "simper" a la matriz "r.c" usando el factor distancia. Para poder acceder al resultado, llamaremos a este "simper_1v4" y al resumen de los resultados sum1v4
+```{r, include=FALSE}
+simper_1v4 <- simper(r.c, distancia)
+sum1v4 <- summary(simper_1v4)
+```
+
+o) El objeto "sum1v4" es una lista, y como tal, podemos observar su elementos uno a uno. Identifiquemos las especies que mayor contribución a las diferencias entre los grupos 1 y 4 con el siguiente comando
+```{r, include=FALSE}
+sum1v4$`1_4`
+```
+
+p) Generemos un vector de nombre "sp" con los nombres de las 20 especies con mayor contribución a las diferencias entre la distancia 1 y 4 y usémoslo como subsetting en la matriz "r.c", que simultáneamente podemos convertir de data.frame a matriz con el nombre "r.c.sub"
+```{r, include=FALSE}
+sp <- rownames(as.data.frame(sum1v4$`1_4`[1:20,]))
+r.c.sub<-as.matrix(r.c[,sp])
+```
+
+q) Genere un nuevo heatmap, pero usando la matriz de 20 especies. ¿Qué logra apreciar?
+
+r) Trate de mejorar el heatmap pero ahora permitiendo que las filas se agrupen según la distancia a la que pertenecen. ¿cómo haría esto?
+
+s) ¿Es posible reordenar las especies según su similitud? Ello se puede abordar usando el índice de Bray-Curtis luego de estandarizar las abundancias de las especies por sus totales y multiplicar por 100. Esto equivale a estimar el índice de asociación de Whittaker (1952), que es ideal para medir correlación entre especies cuyas abundancias están infladas por velores cero. Esto lo puede lograr con los siguientes códigos, los cuales debe analizar y describir.
+
+```{r, eval=FALSE}
+total <- apply(macrofauna, MARGIN = 2, FUN = sum)
+
+mac2 <- macrofauna
+
+for (i in 1:nrow(macrofauna)){
+  mac2[i,] <- 100*(macrofauna[i,]/total)  
+}
+
+d <- vegdist(t(mac2[,sp]), method = "bray")
+
+cluster.sp <- hclust(d, method = "average")
+
+dend.sp<-as.dendrogram(cluster.sp)
+
+plot(dend.sp, main= "Similitud entre especies, Whittaker's index of association")
+
+heatmap(r.c.sub, Rowv = distancia, labRow = distancia, Colv = dend.sp)
+
+```
+
