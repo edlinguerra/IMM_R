@@ -318,7 +318,7 @@ sum((xx - mean(xx)) ^ 2) / length(xx)
 sum((xx - mean(xx)) ^ 2) / (length(xx) - 1)
 
 # 6. Con base en el valor de la varianza y usando operadores aritméticos, 
-# calcula la desviación estándar de ambas muestras.
+# calcula la desviación estándar a esta variable.
 # Confirma tu resultado usando la función en R correspondiente.
 
 
