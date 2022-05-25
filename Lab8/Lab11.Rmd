@@ -1,5 +1,5 @@
 ---
-title: 'IMM con R. Lab8: Efecto de la dispersión multivariada sobre ANOSIM, PERMANOVA y PERMANOVA modificado'
+title: 'IMM con R. Lab11: Efecto de la dispersión multivariada sobre ANOSIM, PERMANOVA y PERMANOVA modificado'
 author: "Dra. Maite Mascaro y Dr. Edlin Guerra Castro"
 date: "`r format(Sys.time(), '%d/%m/%Y')`"
 output:
