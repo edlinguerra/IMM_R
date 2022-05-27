@@ -81,10 +81,22 @@ b.  ¿Puede apreciar las diferencias (de haber) en la posición de los centroide
 
 c.  ¿Cómo puede confirmar que ambas diferencias en dispersión son poco probables de ocurrir por simple azar?
 
-Para responder la útima pregunta se sugiere aplicar una prueba estadística para dispersión multivariada. Una de las más exitosas es **PERMDISP**, que en `vegan` está disponible como la función `betadisper` y `permutest`. Le recomiendo aplicar estas funciones para responder la pregunta. Verificada las diferencias en dispersión, lo que sigue es someter a prueba la hipótesis nula de que ambos grupos tienen el mismo centroide. Recuerde que la hipótesis nula es cierta, por lo que cualquier resultado significativo será un error inferenical del tipo I. Para esto use `anosim`, `adonis` y el script de PERMANOVA acá compartido (corra todas las funciones para que tenga disponible PERMANOVA2):
+Para responder la útima pregunta se sugiere aplicar una prueba estadística para dispersión multivariada. Una de las más exitosas es **PERMDISP**, que en `vegan` está disponible como la función `betadisper` y `permutest`. Le recomiendo aplicar estas funciones para responder la pregunta. Verificada las diferencias en dispersión, lo que sigue es someter a prueba la hipótesis nula de que ambos grupos tienen el mismo centroide. Recuerde que la hipótesis nula es cierta, por lo que cualquier resultado significativo será un error inferenical del tipo I.
+
+```{r, echo=FALSE, eval=FALSE}
+# centramos todas las variables con una normalización
+sim.n <- decostand(sim, method = "standardize")
+
+#Estimamos las distancias Euclidianas
+euc <- dist(sim.n)
+disp <- betadisper(euc, grupos)
+disp
+permutest(disp)
+```
+
+Para esto use `anosim`, `adonis` y el script de PERMANOVA acá compartido (corra todas las funciones para que tenga disponible PERMANOVA2):
 
 ```{r, eval=FALSE}
-
 ## Funciones preliminares
 
 # Sum of Squares using Theorem of Huygen
@@ -157,9 +169,14 @@ PERMANOVA2 <- function(x, factor, distancia, nperm = 999) {
 
 ```
 
-Para efectos de este ejercicio, PERMANOVA2 correrá así:
+Para efectos de este ejercicio, las pruebas correrán así:
 
 ```{r, eval=FALSE}
+
+anosim(x = euc, grouping = grupos)
+
+adonis(euc ~ grupos)
+
 PERMANOVA2(x = sim.n,
   factor = grupos,
   distancia = "euclidean",
@@ -182,16 +199,90 @@ h.  ¿Cuál de las tres pruebas le permitió respaldar lo que se aprecia en el g
 
 En el *Laboratorio 6* se evaluó gráficamente los cambios en la macrofauna del bentos respecto a la distancia a la plataforma de perforación Ekofisk. Visualmente apreciamos patrones de diferencia según la hipótesis, pero formalmente no evaluamos esa hipótesis. Usemos para esto las funciones `anosim` y `adonis` para detectar diferencias entre los grupos de distancia. También evaluemos la dispersión multivariada con `betadisper` y `permutest`. Interprete los resultados y proponga una solución en caso de que se comprometa la interpretación de **ANOSIM** y **PERMANOVA**. Formalmente las preguntas a atender son:
 
-a. Importe la matriz de datos. Identifique la información de sus columnas y filas.
+a.  Importe la matriz de datos. Identifique la información de sus columnas y filas.
 
-b. Recuerde que se dividir los datos en dos objetos: una matriz/dataframe con las columnas con información de especies, y una dataframe con información que identifique a los grupos. 
+```{r, echo=FALSE, eval=FALSE}
+library(readr)
+macrofauna <- read_csv("Lab6/macrofauna.csv")
 
-e. Aplique el índice de similitud Bray-Curtis luego de transformar las abundancias a raíz cuarta.
+```
 
-d. Genere el MDS y represente los grupos de distancia, usando isoMDS y ggplot
+b.  Recuerde que se dividir los datos en dos objetos: una matriz/dataframe con las columnas con información de especies, y una dataframe con información que identifique a los grupos.
 
-e. Evalue la dispersión. ¿qué interpreta? ¿cuál grupo presenta mayor dispersión?
+```{r, echo=FALSE, eval=FALSE}
+dat <- macrofauna[,3:175]
+sitio <- macrofauna[,1:2]
+```
 
-f. Ahora someta a aprueba la hipótesis de cambio en composición de especies según la distancia. ¿cómo se puede interpretar el resultado, considerando la salida de betadisper?
+e.  Aplique el índice de similitud Bray-Curtis luego de transformar las abundancias a raíz cuarta.
 
-g. Considerando este set de datos ¿podría replantear un proyecto con un nuevo diseño de muestreo? Intente estimar el error estándar multivariado a distintos esfuerzos de muestreo a los datos de Ekofisk, usando para ello el paquete **SSP**. 
+```{r, echo=FALSE, eval=FALSE}
+bray <- vegdist(dat^0.25)
+```
+
+d.  Genere el MDS y represente los grupos de distancia, usando isoMDS y ggplot
+
+```{r, echo=FALSE, eval=FALSE}
+mds2<-metaMDS(bray)
+MDS2 <- as.data.frame(mds2$points)
+MDS2$sitio <- factor(sitio$`#dist`,
+                     levels = c(1,2,3,4),
+                     labels = c("1","2","3","4"))
+                     
+plot.MDS2 <- ggplot(data=MDS2 ,aes(x=MDS1, y=MDS2))+
+  geom_point(aes(colour=sitio), size=3.5)+
+  theme_bw(base_size=16) 
+
+plot.MDS2
+
+```
+
+e.  Evalue la dispersión. ¿qué interpreta? ¿cuál grupo presenta mayor dispersión?
+
+```{r, echo=FALSE, eval=FALSE}
+disp.e <- betadisper(bray, group = sitio$`#dist`, type = "centroid")
+disp.e
+boxplot(disp.e)
+permutest(disp.e, permutations = 9999)
+
+```
+
+f.  Ahora someta a aprueba la hipótesis de cambio en composición de especies según la distancia. ¿cómo se puede interpretar el resultado, considerando la salida de betadisper?
+
+```{r, echo=FALSE, eval=FALSE}
+anosim(bray, grouping = sitio$`#dist`)
+adonis(bray~sitio$`#dist`)
+PERMANOVA2(x = dat^0.25, factor = sitio$`#dist`, distancia = "bray")
+
+```
+
+g.  Considerando este set de datos ¿podría replantear un proyecto con un nuevo diseño de muestreo? Intente estimar el error estándar multivariado a distintos esfuerzos de muestreo a los datos de Ekofisk, usando para ello el paquete **SSP**.
+
+```{r, echo=FALSE, eval=FALSE}
+library(SSP)
+sitio1 <- as.data.frame(macrofauna[1:6,-1])
+
+par <- assempar(data = sitio1, type = "counts")
+par
+
+simul <- simdata(Par = par, cases = 10, N = 100, sites = 1)
+
+muestras <- sampsd(dat.sim = simul, Par = par,
+                   transformation = 'fourth root',
+                   method = "bray",
+                   n = 40,
+                   m = 1,
+                   k = 10)
+
+resumen <- summary_ssp(results = muestras, multi.site = FALSE)
+
+optimmo <- ioptimum(xx = resumen, multi.site = FALSE)
+optimmo
+
+plot_ssp(xx = resumen, opt = optimmo, multi.site = FALSE)
+
+datquality(data = sitio1, dat.sim = simul, Par = par,
+           transformation = 'fourth root',
+           method = "bray")
+
+```
