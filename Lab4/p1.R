@@ -38,7 +38,7 @@ dim(sedimentos)
 solo las variables ambientales
 #       d) Seleccione sólo las variables que ambientalmente describan la muestra de sedimento, 
 #          incluyendo contaminantes. Llame a esa selección "sed".
-sed<-sedimentos[,3:11]
+sed<-sedimentos[,2:10]
 #       e) Evalue las escalas de magnitud de las variables, así como sus promedios. ¿Qué función de R podría
 #          ser útil para esto?
 summary(sed)
