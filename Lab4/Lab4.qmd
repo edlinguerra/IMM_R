@@ -1,5 +1,5 @@
 ---
-format: pdf
+format: docx
 editor: visual
 crossref: 
   fig-title: Figura

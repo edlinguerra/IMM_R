@@ -104,6 +104,11 @@ cluster.sp <- hclust(d, method = "average")
 dend.sp<-as.dendrogram(cluster.sp)
 plot(dend.sp, main= "Similitud entre especies, Whittaker's index of association")
 
+#Heatmap
 heatmap(r.c.sub, Rowv = distancia, labRow = distancia, Colv = dend.sp)
-heatmap(r.c.sub, Rowv = distancia, Colv = NULL, labRow = distancia)
+
+#Shadeplot
+heatmap(r.c.sub, Rowv = distancia, labRow = distancia, Colv = dend.sp,
+        col = grey.colors(100, start = 0, end = 1, gamma = 1, rev = TRUE),
+        cexRow = 0.6, cexCol = 0.8, margins = c(7,6))
 
