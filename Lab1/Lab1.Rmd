@@ -1,7 +1,7 @@
 ---
 title: 'IMM con R. Lab1: Aprendiendo a usar R con R-Studio'
 author: "Dra. Maite Mascaro y Dr. Edlin Guerra Castro"
-date: "19/2/2021"
+date: "11/01/2023"
 output:
   pdf_document: default
   html_document: default
@@ -13,25 +13,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # R, R-Studio y repositorios
 
-El objetivo principal de este laboratorio es introducirlos a [R](https://www.r-project.org/) y [RStudio](https://rstudio.com/), las herramientas computacionales que utilizaremos a lo largo del semestre para aprender a aplicar los conceptos más importantes de *Introducción a los Modelos Multidimensionales con R*, pero en especial, para aprender a procesar y analizar datos reales.
+El objetivo principal de este laboratorio es introducirlos a [R](https://www.r-project.org/) y [RStudio](https://rstudio.com/), las herramientas computacionales que utilizaremos a lo largo de este curso para aprender a aplicar los conceptos más importantes de *Análisis Multivariado con R*, pero en especial, para aprender a procesar y analizar datos reales.
 
 El programa [R](https://www.r-project.org/), sus versiones actualizadas y todos los paquetes con funciones, asi como otra información relevante se encuentre en los repositorios de R conocidos como **CRAN** (Comprehensive R Archive Network). Los distintos servidores distribuidos en todo el mundo, conforman el CRAN y son conocidos como los **CRAN mirrors** (de espejo). Para descargar los paquetes requieres antes escoger un **CRAN mirror**, y la función que te permite escogerlo de una lista que aparece en la consola es `chooseCRANmirror`. Alternativamente, se pueden descargar paquetes desde otros repositorios, uno muy popular y que estaremos usando en esta asignatura es [GitHub](https://github.com/).
 
 [RStudio](https://rstudio.com/) es un entorno de desarrollo integrado (IDE) para **R**. Incluye una consola, editor de comandos y líneas de programación que admite la ejecución directa de código, así como herramientas para graficar, documentar, registrar el historial de comandos ejecutados, acceder a archivos, y muchas cosas más desde la gestión de un espacio de trabajo. **RStudio** hace que el trabajar con **R** sea más poderoso, y a su vez simple. Para que tengan una idea, esta guía se escribió desde **RStudio**.
 
-Esta práctica la desarrollaremos desde [Rstudio Cloud](https://rstudio.cloud/), una versión en línea de **RStudio** en el que podemos compartir los ejercicios y hacer seguimiento a las soluciones. Esto no los limita que instalen **R** y **RStusio** en sus computadores, por favor háganlo fuera del horario de clase. La idea por ahora es ser eficientes con el uso del tiempo y evitar distraernos con instalaciones. Para instalarlos (**¡despues de clase!**), descarguen los archivos instaladores desde:
-
-- [R](https://www.r-project.org/)
-- [RStudio](https://rstudio.com/)
-
-Lo que harán ahora es:
-
-1. Crear un usuario con contraseña en [Rstudio Cloud](https://rstudio.cloud/).
-2. Luego, desde el Classroom, ir a la liga de **R Studio Cloud**.
-3. Al ingresar notarán el espacio de trabajo de nombre *IMM*. Entrarán a ese espacio de trabajo y harán clic sobre la tarea asignata de nombre *Laboratorio 1*.
-4. Una vez que se cargue la interface de *Rstudio*, generen un archivo de códigos vacío, siguiendo el símbolo de hoja en blanco y cruz verde justo debajo del menú **File**, es la primera opción. Un atajo para crearlo es con las teclas **Ctrl+Shift+N**
-5. Este archivo vacío es un editor de texto inteligente, que reconoce ciertos caracteres y palabras para autocompletar los comandos. Ese espacio será su borrador de comandos y notas. En este archivo irá pegando y ejecutando todos los códigos que a continuación se explican.
-6. Acá un pequeño ejemplo, copien y peguen todo le código del recuadro de abajo en su editor de comandos. Luego, coloque el cursor al inicio de la primera línea de comando y presionen el botón **Run** en la esquina superior derecha de su achivo de códigos; alternativamente, presione **Ctrl+ENTER**. ¿Qué ocurrió? haga esto para las primeras seis líneas de comando. Cuando llegue a **p <- ggplot...** seleccione todas las líneas faltantes del código y presione Run o **Ctrl+ENTER**. ¿Qué ocurrió?
+Una vez que se cargue la interface de *Rstudio*, generen un archivo de códigos vacío, siguiendo el símbolo de hoja en blanco y cruz verde justo debajo del menú **File**, es la primera opción. Un atajo para crearlo es con las teclas **Ctrl+Shift+N**. Este archivo vacío es un editor de texto inteligente, que reconoce ciertos caracteres y palabras para autocompletar los comandos. Ese espacio será su borrador de comandos y notas. En este archivo irá pegando y ejecutando todos los códigos que a continuación se explican. Acá un pequeño ejemplo, copien y peguen todo el código del recuadro de abajo en su editor de comandos. Luego, coloque el cursor al inicio de la primera línea de comando y presionen el botón **Run** en la esquina superior derecha de su achivo de códigos; alternativamente, presione **Ctrl+ENTER**. ¿Qué ocurrió? haga esto para las primeras seis líneas de comando. Cuando llegue a **p <- ggplot...** seleccione todas las líneas faltantes del código y presione Run o **Ctrl+ENTER**. ¿Qué ocurrió?
 
 ```{r, eval=FALSE}
 
@@ -436,4 +424,4 @@ qplot(
 ```
 
 
-Recuerde cargar las respuestas a estas preguntas en el archivo **mi_solucion_lab1.Rmd** y convertirlo con `Knit` en documento Word. Descargue el archivo y síbalo en el Google Classroom como entregable de la tarea.
+Al terminar, recuerde guardar su archivo de comandos, no requiere salvar el espacio de trabajo. Durante la clase les mostraré algunas formas más prolijas para salvar información y análisis.
