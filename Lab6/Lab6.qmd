@@ -214,7 +214,7 @@ mtext(text = paste("stress =", round(MDS$stress, 3)), outer = FALSE)
 b)  Ahora inspeccione el archivo de ayuda de monoMDS y ejecute un escalamiento métrico usando regresión lineal.
 
 ```{r, eval = FALSE}
-mMDS <- monoMDS(bray1, model = "linear")
+mMDS <- metaMDS(bray1, model = "linear", trymax = 200)
 plot(mMDS$points)
 shp <- Shepard(d = bray1, x = mMDS$points)
 plot(shp)
@@ -259,7 +259,7 @@ scoresPCO.tb <- as_tibble(scoresPCO)
 
 b)  Luego, se debe indintificar al factor dist con la función "group_by". Esa identificación debe tener un nombre particular. Usemos el nombre scoresPCO.dist
 
-```{r, eval = FALSE} 
+```{r, eval = FALSE}
 scoresPCO.dist <- group_by(scoresPCO.tb, dist)
 ```
 
