@@ -35,9 +35,8 @@ d)  ¿Con base en las dimensiones, se puede inferir cuántas especies hay en la 
 e)  ¿Son similares las magnitudes de abundancia de las especies en cada localidad?
 f)  Considerando que esta es una matriz pequeña ¿puede apreciar algún patrón biológico viendo solo la tabla?
 
-```{=html}
 <!-- -->
-```
+
 2.  Genere una tabla de nombre "uni" que describa las propiedades UNIVARIADAS bióticas de las localidades, incluya: la riqueza de especies, la abundancia de individuos y el índice de diversidad de Simpson. Le recomiendo buscar ayuda sobre las funciones `specnumber`, `diversity`. Acá un **script** que le ayudará a avanzar rápido. Nota: ninguna de estas funciones filtran texto
 
 ```{r, eval=FALSE}
@@ -49,9 +48,9 @@ uni <-
   )
 ```
 
-a) ¿Obtuvo un error? ¿qué cree que pudo ocurrir? 
-b) Seleccione sólo las columnas con información de las abundancias de las especies y llámelas "dat".
-c) Repita el **script** para generar la tabla de descriptores univariados.
+a)  ¿Obtuvo un error? ¿qué cree que pudo ocurrir?
+b)  Seleccione sólo las columnas con información de las abundancias de las especies y llámelas "dat".
+c)  Repita el **script** para generar la tabla de descriptores univariados.
 
 ```{r, include=FALSE}
 dat <- gradiente[, 3:12]
@@ -63,8 +62,8 @@ uni <- data.frame(
 uni     
 ```
 
-d) ¿volvió a obtener un problema? ¿qué cree que pudo ocurrir ahora?
-e) ¿qué significan los NA? ¿cómo convertimos los NA en números? ¿Qué números le asignamos?
+d)  ¿volvió a obtener un problema? ¿qué cree que pudo ocurrir ahora?
+e)  ¿qué significan los NA? ¿cómo convertimos los NA en números? ¿Qué números le asignamos?
 
 ```{r, include=FALSE}
 dat[is.na(dat)] <- 0
@@ -76,7 +75,7 @@ uni <- data.frame(
 uni
 ```
 
-f) Calculados los descriptores univariados ¿puede apreciar algún patrón biológico viendo solo la tabla? Explique el patrón. Si considera necesario realizar algún gráfico, hágalo. El siguiente **script** puede ser útil, pero no es la única forma.
+f)  Calculados los descriptores univariados ¿puede apreciar algún patrón biológico viendo solo la tabla? Explique el patrón. Si considera necesario realizar algún gráfico, hágalo. El siguiente **script** puede ser útil, pero no es la única forma.
 
 ```{r, eval=FALSE}
 dat.s <- data.frame(stack(dat), loc = row.names(dat))
@@ -93,12 +92,15 @@ qplot(
 )
 ```
 
-g) Aparentemente no hay un patrón biológico según el gradiente, sin embargo, la ausencia de patrón puede ser producto del reduccionismo de los descriptores univariados. Por ello, usaremos métodos multivariados para apreciar mejor la informacion de la matriz.
+g)  Aparentemente no hay un patrón biológico según el gradiente, sin embargo, la ausencia de patrón puede ser producto del reduccionismo de los descriptores univariados. Por ello, usaremos métodos multivariados para apreciar mejor la informacion de la matriz.
 
 ## Parte 2: Análisis en modo Q
 
 1.  Hemos identificado que nuestra matriz tiene 6 muestras (localidades) y 10 especies. Además, no todas las especies están en todas las muestras, hay especies con abundancias muy elevadas y otras muy bajas. ¿qué representa esto para iniciar un análisis multivariado? Exploremos esto usando varios métodos. Sugiero leer el material de ayuda `vegdist` del paquete `vegan`, tipeando `??vegdist` en la cónsola. Para esta práctica compararemos el desempeño del índice Bray-Curtis y la distancia Euclideana.
 
+```{=html}
+<!-- -->
+```
 a)  Iniciemos con las distancias Euclideanas. Use la función `vegdist`, y llame al resultado *euc*.
 
 ```{r, include=FALSE}
@@ -106,11 +108,11 @@ a)  Iniciemos con las distancias Euclideanas. Use la función `vegdist`, y llame
 euc <- vegdist(dat, method = "euclidean")
 ```
 
-b) ¿cuántos valores se estimaron teniendo en cuenta que hay 6 localidades?
-c) ¿Qué tipo de objeto es euc?
-d) ¿cómo se interpretan las unidades medidas?
-e) ¿cuáles son las localidades más parecidas? ¿qué puede decir de la relación entre la localidad 1 y 6?
-f) ¿Aprecia el gradiente? Si no, genere un dendograma que nos ayude a visualizar el patrón de cambio 
+b)  ¿cuántos valores se estimaron teniendo en cuenta que hay 6 localidades?
+c)  ¿Qué tipo de objeto es euc?
+d)  ¿cómo se interpretan las unidades medidas?
+e)  ¿cuáles son las localidades más parecidas? ¿qué puede decir de la relación entre la localidad 1 y 6?
+f)  ¿Aprecia el gradiente? Si no, genere un dendograma que nos ayude a visualizar el patrón de cambio
 
 ```{r, eval=FALSE}
 plot(hclust(euc, "average"))
@@ -133,8 +135,7 @@ l)  ¿qué fue lo que se estimaron, similitudes o dismilitudes? ¿cómo se inter
 
 ```
 
-n)  ¿cuáles son las localidades más parecidas? ¿qué puede decir de la similitud entre la localidad 1 y 6?
-ñ) ¿Aprecia el gradiente? Si no, genere un dendograma que nos ayude a visualizar el patrón de cambio
+n)  ¿cuáles son las localidades más parecidas? ¿qué puede decir de la similitud entre la localidad 1 y 6? ñ) ¿Aprecia el gradiente? Si no, genere un dendograma que nos ayude a visualizar el patrón de cambio
 
 ```{r, eval=FALSE}
 plot(hclust(bray1, "average"))
