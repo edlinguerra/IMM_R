@@ -112,3 +112,32 @@ heatmap(r.c.sub, Rowv = distancia, labRow = distancia, Colv = dend.sp,
         col = grey.colors(100, start = 0, end = 1, gamma = 1, rev = TRUE),
         cexRow = 0.6, cexCol = 0.8, margins = c(7,6))
 
+### códigos para shade plot empleando ggplot2, ggdendro y ggside
+library(ggplot2)
+library(ggdendro)
+library(ggside)
+
+
+especies <- cluster.sp$labels[cluster.sp$order]
+dendroy <- dendro_data(cluster.sp)
+
+matriz_macrofauna |>
+  select(`#dist`, all_of(sp))|>
+  pivot_longer(cols = 2:21,
+               names_to = "species_name",
+               values_to = "species_count")|>
+  ggplot(aes(x = `#dist`,
+             y = factor(species_name, levels = especies),
+             fill = sqrt(species_count)))+
+  geom_tile()+
+  ylab("Especies")+
+  xlab("Distancia")+
+  #labs(fill = leyenda)+
+  scale_y_discrete(labels = sp, expand = c(0, 0))+
+  scale_x_discrete()+
+  scale_fill_gradient(low = "white", high = "black")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5))+
+  geom_ysidesegment(data = dendroy$segments, aes(y = x, x = y, yend = xend, xend = yend),
+                    inherit.aes = FALSE)+
+  theme_ggside_void()
